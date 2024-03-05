@@ -1,4 +1,4 @@
-package com.example.productservicedemo.config;
+package com.example.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

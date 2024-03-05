@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: "jdbc:mysql://localhost:3305/mydb?createDatabaseIfNotExist-true&serverTimezone=UTC"
+    username: "tanya"
+    password: "tanya"
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost
+          defaultBrokerPort: 9092
+      bindings:
+        send-product-created-out-0:
+          destination: product.create
+
+auth:
+  issuers:
+    google: https://accounts.google.com
+    microsoft: https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0

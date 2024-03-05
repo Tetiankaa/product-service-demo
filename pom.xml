@@ -34,7 +34,14 @@
         <product-service-openapi-spec.path>
             ${project.basedir}/src/main/resources/specification/product-service.openapi.yml
         </product-service-openapi-spec.path>
+
+        <product-service-asyncapi.path>
+            ${project.basedir}/src/main/resources/specification/product-service.asyncapi.yml
+        </product-service-asyncapi.path>
+
         <api-package>org.example.rest</api-package>
+        <zenwave.version>1.4.1</zenwave.version>
+
     </properties>
 
     <dependencies>
@@ -95,6 +102,17 @@
             <artifactId>swagger-annotations</artifactId>
             <version>${swagger-annotations.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-stream-kafka</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -103,6 +121,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
+
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
@@ -141,9 +160,12 @@
                         <id>generate-api</id>
 
                         <configuration>
+                            <!-- Specifies the path to the OpenAPI specification file -->
                             <inputSpec>${product-service-openapi-spec.path}</inputSpec>
 
                             <!--https://openapi-generator.tech/docs/generators/spring -->
+
+                            <!-- indicating that code will be generated for the Spring framework -->
                             <generatorName>spring</generatorName>
                             <library>spring-boot</library>
 
@@ -153,7 +175,7 @@
 
                             <!-- ... a lot of other parameters here if needed -->
 
-                            <!-- configuration -->
+                            <!-- configuration options for the code generation process -->
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>
                                 <useBeanValidation>true</useBeanValidation>
@@ -169,6 +191,70 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.github.zenwave360.zenwave-sdk</groupId>
+                <artifactId>zenwave-sdk-maven-plugin</artifactId>
+                <version>1.4.1</version>
+
+                <configuration>
+                    <addCompileSourceRoot>true</addCompileSourceRoot>
+                    <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>generate-asyncapi-dtos</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+
+                        <configuration>
+                            <!-- It automates the process of generating Java classes from JSON Schema definitions-->
+                            <generatorName>jsonschema2pojo</generatorName>
+                            <inputSpec>${product-service-asyncapi.path}</inputSpec>
+                            <configOptions>
+                                <modelPackage>org.example.event.model</modelPackage>
+                                <jsonschema2pojo.useJakartaValidation>true</jsonschema2pojo.useJakartaValidation>
+                                <jsonschema2pojo.includeJsr303Annotations>false</jsonschema2pojo.includeJsr303Annotations>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>generate-asyncapi</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <generatorName>spring-cloud-streams3</generatorName>
+                            <inputSpec>${product-service-asyncapi.path}</inputSpec>
+
+                            <configOptions>
+                                <role>provider</role>
+                                <style>imperative</style>
+                                <apiPackage>org.example.event.api</apiPackage>
+                                <modelPackage>org.example.event.model</modelPackage>
+                                <operationIds>sendProductCreated</operationIds>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.github.zenwave360.zenwave-sdk.plugins</groupId>
+                        <artifactId>asyncapi-spring-cloud-streams3</artifactId>
+                        <version>1.4.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>io.github.zenwave360.zenwave-sdk.plugins</groupId>
+                        <artifactId>asyncapi-jsonschema2pojo</artifactId>
+                        <version>1.4.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

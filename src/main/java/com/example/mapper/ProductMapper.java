@@ -1,9 +1,7 @@
-package com.example.productservicedemo.mapper;
+package com.example.mapper;
 
-import com.example.productservicedemo.entity.Product;
-import lombok.RequiredArgsConstructor;
+import com.example.entity.Product;
 import org.mapstruct.*;
-import org.springframework.stereotype.Component;
 import org.example.rest.model.ProductDto;
 
 

@@ -1,9 +1,11 @@
-package com.example.productservicedemo.service;
+package com.example.service;
 
-import com.example.productservicedemo.entity.Product;
-import com.example.productservicedemo.mapper.ProductMapper;
-import com.example.productservicedemo.repository.ProductRepository;
+import com.example.entity.Product;
+import com.example.mapper.ProductMapper;
+import com.example.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.example.event.api.IProductEventsProducer;
+import org.example.event.model.ProductCreatedPayload;
 import org.springframework.stereotype.Service;
 import org.example.rest.model.ProductDto;
 
@@ -16,10 +18,18 @@ public class ProductService {
     private final ProductMapper productMapper;
 
     private final ProductRepository productRepository;
+    private final IProductEventsProducer eventsProducer;
 
     public ProductDto createProduct(ProductDto productDto) {
         Product product = productMapper.toProduct(productDto);
         Product createdProduct = productRepository.save(product);
+
+        ProductCreatedPayload payload = new ProductCreatedPayload();
+        payload.setProductId(Math.toIntExact(createdProduct.getId()));
+        payload.setProductType(createdProduct.getName());
+
+        eventsProducer.sendProductCreated(payload);
+
         return productMapper.toDto(createdProduct);
     }
 
